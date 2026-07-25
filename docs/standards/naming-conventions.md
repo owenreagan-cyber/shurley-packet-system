@@ -18,6 +18,7 @@ Never use **Study Guide** in titles, headers, footers, or body text of newly gen
 | In-Class Chapter Review | Condensed classroom review activity (separate file) |
 | Classroom Checkpoint | Short in-lesson check (future use) |
 | Skill Review | Focused skill practice page (future use) |
+| Capitalization and Punctuation Reference | Official Shurley rules 1–13 (punctuation) and 1–8 (capitalization) |
 
 ## Directory Structure
 

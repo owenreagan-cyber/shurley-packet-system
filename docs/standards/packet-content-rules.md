@@ -79,14 +79,17 @@ Preserve and improve confirmed content from `Chapter 1 Guided Notes.docx`.
 
 - Lesson 3: Five parts of a complete sentence, synonyms, antonyms, blank vocabulary template.
 - Lesson 4: Analogies (synonym, antonym, rhyming, part-to-whole), source analogy examples, blank vocabulary template.
-- Lesson 5: Blank vocabulary template, capitalization practice, editing (no rule numbers).
-- Lesson 6: Blank vocabulary template, capitalization and punctuation application, editing (no rule numbers).
+- Lesson 5: Blank vocabulary template, **Capitalization and Punctuation Reference** (protected), capitalization practice, editing.
+- Lesson 6: Blank vocabulary template, capitalization and punctuation application, editing.
 
 ## Capitalization and Punctuation
 
+- Official Shurley capitalization and punctuation rules live in `source-materials/reference/shurley-capitalization-punctuation-reference.pdf`.
+- Protected transcription: `source-materials/reference/shurley-capitalization-punctuation-reference-transcription.md`.
+- The **Capitalization and Punctuation Reference** appears in the student packet and teacher edition immediately before Lesson 5 (pages embedded from the protected PDF to preserve exact wording).
+- Punctuation Rules 1–13 and Capitalization Rules 1–8 must not be altered, paraphrased, or renumbered.
 - Use error-count editing cues from Guided Notes where present.
-- Do not invent capitalization rule lists or Shurley rule numbers.
-- The Capitalization Reference Sheet referenced in Lesson 5 is not in the repository; direct teachers to supply it separately.
+- Do not invent additional capitalization rule lists or Shurley rule numbers beyond the official reference.
 
 ## Chapter Review
 

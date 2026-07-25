@@ -13,6 +13,10 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 
+REF_PUNCT_IMG = ROOT / "source-materials/reference/shurley-capitalization-punctuation-reference-page-1.png"
+REF_CAP_IMG = ROOT / "source-materials/reference/shurley-capitalization-punctuation-reference-page-2-oriented.png"
+REF_SOURCE_PDF = ROOT / "source-materials/reference/shurley-capitalization-punctuation-reference.pdf"
+
 STUDENT_OUT = ROOT / "packets/student/chapter-01/chapter-01-shurley-packet.docx"
 TEACHER_OUT = ROOT / "packets/teacher-keys/chapter-01/chapter-01-shurley-packet-teacher-edition.docx"
 REVIEW_OUT = ROOT / "packets/chapter-reviews/chapter-01/chapter-01-in-class-chapter-review.docx"
@@ -173,6 +177,164 @@ def add_knowledge_box(doc, text):
     add_run(p, text, size=13)
 
 
+def add_analogy_lesson_banner(doc, title: str):
+    add_para(
+        doc,
+        "Chapter 1 — Lesson 4",
+        bold=True,
+        size=18,
+        align=WD_ALIGN_PARAGRAPH.CENTER,
+        space_after=4,
+    )
+    add_para(
+        doc,
+        title,
+        bold=True,
+        size=16,
+        align=WD_ALIGN_PARAGRAPH.CENTER,
+        space_after=12,
+    )
+
+
+def add_analogy_section_label(doc, text: str):
+    return add_para(doc, text, bold=True, size=18, space_before=4, space_after=8)
+
+
+def add_analogy_body(doc, text: str, **kw):
+    defaults = {"size": 14, "space_after": 8}
+    defaults.update(kw)
+    return add_para(doc, text, **defaults)
+
+
+def add_analogy_example(doc, text: str, **kw):
+    defaults = {"size": 16, "space_after": 10, "space_before": 2}
+    defaults.update(kw)
+    return add_para(doc, text, **defaults)
+
+
+def _paragraph_border(p, color: str = "999999", size: str = "8", space: str = "6"):
+    pPr = p._element.get_or_add_pPr()
+    pBdr = OxmlElement("w:pBdr")
+    for side in ("top", "left", "bottom", "right"):
+        b = OxmlElement(f"w:{side}")
+        b.set(qn("w:val"), "single")
+        b.set(qn("w:sz"), size)
+        b.set(qn("w:space"), space)
+        b.set(qn("w:color"), color)
+        pBdr.append(b)
+    pPr.append(pBdr)
+
+
+def add_analogy_remember_box(doc):
+    table = doc.add_table(rows=1, cols=1)
+    table.style = "Table Grid"
+    cell = table.rows[0].cells[0]
+    _set_cell_margins(cell, top=140, start=180, bottom=140, end=180)
+    _clear_cell(cell)
+    p = cell.paragraphs[0]
+    p.paragraph_format.space_after = Pt(10)
+    add_run(p, "Remember — Analogy Symbols", bold=True, size=15)
+    for text in (
+        "Colon (:) — separates the two words in each pair.",
+        "Double colon (::) — means “is to ___ as”.",
+        "“Is to” — connects the first word pair.",
+        "“As” — connects the first pair to the second pair.",
+    ):
+        lp = cell.add_paragraph()
+        lp.paragraph_format.space_after = Pt(8)
+        add_run(lp, text, size=14)
+    spacer = doc.add_paragraph()
+    spacer.paragraph_format.space_after = Pt(6)
+
+
+def add_analogy_student_check(doc, prompt: str):
+    add_analogy_section_label(doc, "Quick Check")
+    add_analogy_body(doc, prompt, space_after=6)
+    add_blank_lines(doc, 1)
+
+
+def _set_cell_margins(cell, top=100, start=140, bottom=100, end=140):
+    tc_pr = cell._tc.get_or_add_tcPr()
+    tc_mar = OxmlElement("w:tcMar")
+    for side, val in (("top", top), ("start", start), ("bottom", bottom), ("end", end)):
+        node = OxmlElement(f"w:{side}")
+        node.set(qn("w:w"), str(val))
+        node.set(qn("w:type"), "dxa")
+        tc_mar.append(node)
+    tc_pr.append(tc_mar)
+
+
+def _set_row_height(row, twips: int = 2200):
+    tr_pr = row._tr.get_or_add_trPr()
+    tr_height = OxmlElement("w:trHeight")
+    tr_height.set(qn("w:val"), str(twips))
+    tr_height.set(qn("w:hRule"), "atLeast")
+    tr_pr.append(tr_height)
+
+
+def _clear_cell(cell):
+    cell.text = ""
+    for p in cell.paragraphs:
+        p.clear()
+
+
+def _fill_analogy_card(cell, relationship: str, analogy: str, explanation: str):
+    _clear_cell(cell)
+    _set_cell_margins(cell)
+    p1 = cell.paragraphs[0]
+    p1.paragraph_format.space_after = Pt(8)
+    add_run(p1, relationship, bold=True, size=16)
+    p2 = cell.add_paragraph()
+    p2.paragraph_format.space_after = Pt(8)
+    add_run(p2, analogy, size=16)
+    p3 = cell.add_paragraph()
+    p3.paragraph_format.space_after = Pt(4)
+    add_run(p3, explanation, size=14)
+
+
+def add_analogy_relationship_cards(doc):
+    table = doc.add_table(rows=2, cols=2)
+    table.style = "Table Grid"
+    table.autofit = False
+    for row in table.rows:
+        _set_row_height(row, 2800)
+        for cell in row.cells:
+            cell.width = Inches(3.35)
+
+    cards = list(ANALOGY_TYPES)
+    for idx, (rel, analogy, explanation) in enumerate(cards):
+        r, c = divmod(idx, 2)
+        _fill_analogy_card(table.rows[r].cells[c], rel, analogy, explanation)
+    doc.add_paragraph()
+
+
+def add_full_page_image(doc, image_path: Path, max_height_inches: float = 8.75, max_width_inches: float = 7.0):
+    try:
+        from PIL import Image
+    except ImportError:
+        from docx.shared import Inches as _Inches
+        p = doc.add_paragraph()
+        p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        run = p.add_run()
+        run.add_picture(str(image_path), width=_Inches(max_width_inches))
+        return
+
+    im = Image.open(image_path)
+    w, h = im.size
+    height_in = max_height_inches
+    width_in = height_in * (w / h)
+    if width_in > max_width_inches:
+        width_in = max_width_inches
+        height_in = width_in * (h / w)
+
+    p = doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p.paragraph_format.space_before = Pt(0)
+    p.paragraph_format.space_after = Pt(0)
+    run = p.add_run()
+    run.add_picture(str(image_path), width=Inches(width_in), height=Inches(height_in))
+
+
 def add_drawing_box(doc, lines=8):
     p = doc.add_paragraph()
     p.paragraph_format.space_before = Pt(4)
@@ -294,17 +456,16 @@ def page_l1b(doc):
     add_section_label(doc, "Practice Independently")
     add_body(doc, "Choose one academic long-term goal. Write it below, then write two or three short-term action steps.", bold=True)
     add_blank_lines(doc, 1, "My academic long-term goal:")
-    add_blank_lines(doc, 2, "Short-term action steps:")
+    add_blank_lines(doc, 1, "Short-term action steps:")
     add_body(doc, "Choose one personal long-term goal. Write it below, then write two or three short-term action steps.", bold=True, space_before=8)
     add_blank_lines(doc, 1, "My personal long-term goal:")
-    add_blank_lines(doc, 2, "Short-term action steps:")
+    add_blank_lines(doc, 1, "Short-term action steps:")
     add_section_label(doc, "Apply")
     add_body(doc, "Write one linking comment you could use during a class discussion. Use a sentence starter from this lesson.")
-    add_blank_lines(doc, 2)
+    add_blank_lines(doc, 1)
     add_memory_check(doc, [
         "Name two discussion expectations.",
         "What is the difference between a short-term goal and a long-term goal?",
-        "Give one example of an academic goal and one example of a personal goal.",
     ])
     add_teacher_check(doc)
 
@@ -319,17 +480,17 @@ def page_l2a(doc):
         add_bullet(doc, topic)
     add_section_label(doc, "Practice Together")
     add_body(doc, "Choose one journal topic from the list. Write a short journal entry below.")
-    add_blank_lines(doc, 4)
+    add_blank_lines(doc, 3)
     add_section_label(doc, "Learn — Letter to Future Me")
     add_body(doc, "You will write a letter to yourself to read during the last week of school. Include these four parts:")
     for part in ["1. Who I Am Right Now", "2. My Thoughts About Fourth Grade",
                  "3. My Goals and Action Steps", "4. A Message to My Future Self"]:
         add_body(doc, part)
-    add_body(doc, "You may combine sections naturally into paragraphs. You do not need exactly three paragraphs.", italic=True)
 
 
 def page_l2b(doc):
     add_lesson_banner(doc, 2, "Planning Organizer — Part 1")
+    add_body(doc, "You may combine sections naturally into paragraphs. You do not need exactly three paragraphs.", italic=True, space_after=8)
     add_section_label(doc, "Practice Independently — Planning Organizer")
     for title, prompts in [
         ("Who I Am Right Now", ["What are your favorite hobbies?", "What are your favorite foods, games, books, or activities?", "What is important to you right now?"]),
@@ -429,29 +590,46 @@ def page_l3c(doc):
 
 
 def page_l4a(doc):
-    add_lesson_banner(doc, 4, "Introduction to Analogies")
-    add_section_label(doc, "Learn")
-    add_body(doc, "An analogy is a way of thinking about how pairs of words are related. It is a special puzzle.")
-    add_body(doc, "Spoken example: boat is to goat as fan is to ___________.")
-    add_body(doc, "Written example: front : back :: top : ___________")
-    add_knowledge_box(doc, "The symbol :: means 'is to ___ as'. The colon (:) separates the two words in each pair.")
+    add_analogy_lesson_banner(doc, "Understanding Analogies")
+    add_analogy_section_label(doc, "Learn")
+    add_analogy_body(
+        doc,
+        "An analogy is a way of thinking about how pairs of words are related. "
+        "It is a special word puzzle.",
+    )
+    add_analogy_example(doc, "Spoken example: boat is to goat as fan is to ___________.")
+    add_analogy_example(doc, "Written example: front : back :: top : ___________")
+    add_analogy_remember_box(doc)
+    add_analogy_section_label(doc, "Worked Example")
+    add_analogy_example(doc, "front : back :: top : bottom")
+    add_analogy_body(
+        doc,
+        "The first pair shows opposites. The second pair shows opposites too. "
+        "That is an antonym analogy.",
+        italic=True,
+    )
+    add_analogy_student_check(
+        doc,
+        "Try it: boat is to goat as fan is to ___________. "
+        "Write the word that completes the rhyme.",
+    )
 
 
 def page_l4a2(doc):
-    add_lesson_banner(doc, 4, "Four Common Analogy Relationships")
-    add_section_label(doc, "Learn — Relationship Table")
-    table = doc.add_table(rows=1, cols=3)
-    table.style = "Table Grid"
-    hdr = table.rows[0].cells
-    hdr[0].text = "Relationship"
-    hdr[1].text = "Analogy"
-    hdr[2].text = "How the words are related"
-    for rel, analogy, explanation in ANALOGY_TYPES:
-        row = table.add_row().cells
-        row[0].text = rel
-        row[1].text = analogy
-        row[2].text = explanation
-    doc.add_paragraph()
+    add_analogy_lesson_banner(doc, "Four Common Analogy Relationships")
+    add_analogy_section_label(doc, "Learn — Four Relationship Types")
+    add_analogy_body(
+        doc,
+        "Study each relationship card below. Notice the large example and the short explanation.",
+        space_after=10,
+    )
+    add_analogy_relationship_cards(doc)
+    add_analogy_body(
+        doc,
+        "Tip: Read the relationship name first, then read the example aloud using “is to” and “as.”",
+        italic=True,
+        space_before=4,
+    )
 
 
 def page_l4b(doc):
@@ -486,6 +664,34 @@ def page_l4d(doc):
         "Give one example of a synonym analogy.",
     ])
     add_teacher_check(doc)
+
+
+def page_ref_intro(doc):
+    add_para(
+        doc,
+        "Capitalization and Punctuation Reference",
+        bold=True,
+        size=18,
+        align=WD_ALIGN_PARAGRAPH.CENTER,
+        space_after=10,
+    )
+    add_body(
+        doc,
+        "Use this reference during Lessons 5 and 6. The next pages show the official "
+        "Shurley punctuation and capitalization rules.",
+        italic=True,
+        space_after=8,
+    )
+    add_body(doc, "Reference 9 — Punctuation Rules (next page)", space_before=8)
+    add_body(doc, "Reference 7 — Capitalization Rules (following page)")
+
+
+def page_ref_punctuation(doc):
+    add_full_page_image(doc, REF_PUNCT_IMG)
+
+
+def page_ref_capitalization(doc):
+    add_full_page_image(doc, REF_CAP_IMG)
 
 
 def page_l5a(doc):
@@ -656,12 +862,15 @@ TEACHER_NOTES = [
     TeacherPageNotes("Page 12 — Lesson 3: Vocabulary and Memory Check",
                      answers=["Vocabulary word, definition, synonym, antonym, and sentence: teacher-assigned — answers will vary."],
                      prompts=["What strategy helps you remember a new vocabulary word?"]),
-    TeacherPageNotes("Page 13 — Lesson 4: Introduction to Analogies",
-                     answers=["Spoken example: man (rhyming). Written example: bottom (antonym)."],
-                     timing="8 minutes"),
-    TeacherPageNotes("Page 14 — Lesson 4: Analogy Relationship Table",
-                     answers=["Table content matches student page."],
-                     timing="7 minutes"),
+    TeacherPageNotes("Page 13 — Lesson 4: Understanding Analogies",
+                     answers=["Quick Check: man (rhyming). Worked example: bottom (antonym)."],
+                     prompts=["Read the spoken and written examples aloud.", "Point to each Remember box item."],
+                     timing="10 minutes for pages 13–14",
+                     misconceptions=["Students may confuse : and :: — use the Remember box."]),
+    TeacherPageNotes("Page 14 — Lesson 4: Four Common Analogy Relationships",
+                     answers=["Cards match student page: Synonym, Antonym, Rhyming, Part-to-Whole."],
+                     prompts=["Have students read one card aloud using “is to” and “as.”"],
+                     timing="Included in 10-minute intro block"),
     TeacherPageNotes("Page 15 — Lesson 4: Analogy Practice",
                      answers=[
                          "1. unhappy : sad (Synonym)", "2. asleep : awake (Antonym)",
@@ -678,45 +887,61 @@ TEACHER_NOTES = [
     TeacherPageNotes("Page 17 — Lesson 4: Create-Your-Own Analogies",
                      answers=["Student-created analogies will vary — check that each has a labeled relationship."],
                      prompts=["Share one analogy with a partner and explain the relationship."]),
-    TeacherPageNotes("Page 18 — Lesson 5: Vocabulary and Analogy Example",
+    TeacherPageNotes("Reference — Capitalization and Punctuation Reference",
+                     answers=["Official Shurley reference section — student and teacher pages match."],
+                     procedures=[
+                         "Place this reference immediately before Lesson 5. "
+                         "Direct students to use it during Lessons 5 and 6 editing practice.",
+                     ]),
+    TeacherPageNotes("Reference 9 — Punctuation Rules",
+                     answers=["Protected source page — punctuation rules 1–13 embedded as image."],
+                     procedures=["Content embedded from official PDF page 1. Do not alter rule wording or examples."]),
+    TeacherPageNotes("Reference 7 — Capitalization Rules",
+                     answers=["Protected source page — capitalization rules 1–8 embedded as image."],
+                     procedures=["Content embedded from official PDF page 2. Do not alter rule wording or examples."]),
+    TeacherPageNotes("Page 20 — Lesson 5: Vocabulary and Analogy Example",
                      answers=[
                          "Example analogy relationship: Part-to-Whole (source: fraction : whole :: wing : bird).",
                          "Vocabulary: teacher-assigned — answers will vary.",
                      ]),
-    TeacherPageNotes("Page 19 — Lesson 5: Capitalization Practice",
+    TeacherPageNotes("Page 21 — Lesson 5: Capitalization Practice",
                      answers=[
                          "Passage 1 capitals: My, I, Amy, Ford's, Theater, Friday, Nim's, Island",
                          "Passage 2 capitals: My, Reagan, Beth, Main, Street, July",
                      ],
                      misconceptions=["Students may capitalize common nouns like 'friends' or 'night.'"]),
-    TeacherPageNotes("Page 20 — Lesson 5: Editing — Capitals",
+    TeacherPageNotes("Page 22 — Lesson 5: Editing — Capitals",
                      answers=[
                          "1. We drove to Lake Michigan on Saturday with Mrs. Daniels.",
                          "2. Yes, Sam and I work on Saturdays at Quickfill Gas on Jasper Road in Denver.",
                      ]),
-    TeacherPageNotes("Page 21 — Lesson 6: Vocabulary and Analogy Example",
+    TeacherPageNotes("Page 23 — Lesson 6: Vocabulary and Analogy Example",
                      answers=[
                          "Example analogy relationship: Part-to-Whole (source: individual : community :: bird : flock).",
                          "Vocabulary: teacher-assigned — answers will vary.",
                      ]),
-    TeacherPageNotes("Page 22 — Lesson 6: Capitalization and Punctuation",
+    TeacherPageNotes("Page 24 — Lesson 6: Capitalization and Punctuation",
                      answers=["Sample observations: question mark/end mark, commas in a list, proper nouns capitalized."]),
-    TeacherPageNotes("Page 23 — Lesson 6: Editing — Mixed Skills",
+    TeacherPageNotes("Page 25 — Lesson 6: Editing — Mixed Skills",
                      answers=[
                          "1. Yes, Mr. Green will move to Denver, Colorado, on June 18, 2024.",
                          "2. Did your teacher, Ms. Coleman, read Charlotte's Web to your class today?",
                      ],
                      alternates=["Also accept exclamation mark on Sentence 1 if student treats 'Yes' as strong emotion."]),
-    TeacherPageNotes("Page 24 — In-Class Chapter Review",
+    TeacherPageNotes("Page 26 — In-Class Chapter Review",
                      answers=["See In-Class Chapter Review Key for full review answers."],
                      procedures=["Use as an end-of-chapter classroom activity. Do not assign as homework or test prep."],
                      timing="25–35 minutes in class"),
 ]
 
 
+REFERENCE_PAGE_BUILDERS = frozenset({page_ref_intro, page_ref_punctuation, page_ref_capitalization})
+MIRROR_STUDENT_LAYOUT_BUILDERS = REFERENCE_PAGE_BUILDERS | frozenset({page_l4a, page_l4a2})
+
 STUDENT_PAGES = [
     page_cover, page_l1a, page_l1b, page_l2a, page_l2b, page_l2b2, page_l2c, page_l2d, page_l2e,
     page_l3a, page_l3b, page_l3c, page_l4a, page_l4a2, page_l4b, page_l4c, page_l4d,
+    page_ref_intro, page_ref_punctuation, page_ref_capitalization,
     page_l5a, page_l5a2, page_l5b, page_l6a, page_l6a2, page_l6b, page_review,
 ]
 
@@ -733,14 +958,19 @@ def build_student_packet():
 
 def build_teacher_edition():
     doc = Document()
-    for i, notes in enumerate(TEACHER_NOTES, 1):
+    for i, (builder, notes) in enumerate(zip(STUDENT_PAGES, TEACHER_NOTES), 1):
         section = doc.sections[0] if i == 1 else doc.add_section()
         set_margins(section)
         add_page_footer(section, i)
         if i == 1:
             add_para(doc, "Chapter 1 — Shurley Packet", bold=True, size=20, align=WD_ALIGN_PARAGRAPH.CENTER)
             add_para(doc, "Teacher Edition", bold=True, size=16, align=WD_ALIGN_PARAGRAPH.CENTER, space_after=8)
-        add_teacher_answer_block(doc, notes)
+        if builder in MIRROR_STUDENT_LAYOUT_BUILDERS:
+            builder(doc)
+            if builder is page_ref_intro:
+                add_teacher_answer_block(doc, notes)
+        else:
+            add_teacher_answer_block(doc, notes)
     return doc, len(TEACHER_NOTES)
 
 
@@ -779,6 +1009,9 @@ def build_review_key():
 
 
 def main():
+    for path in (REF_PUNCT_IMG, REF_CAP_IMG, REF_SOURCE_PDF):
+        if not path.exists():
+            raise FileNotFoundError(f"Missing protected reference asset: {path}")
     assert len(TEACHER_NOTES) == len(STUDENT_PAGES), (
         f"Teacher notes ({len(TEACHER_NOTES)}) must match student pages ({len(STUDENT_PAGES)})"
     )

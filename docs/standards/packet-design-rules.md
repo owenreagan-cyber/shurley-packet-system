@@ -84,5 +84,6 @@ After generating each DOCX:
 1. Render to page images via LibreOffice (`soffice --headless`) and `pdftoppm`.
 2. Inspect every rendered page for clipping, overlap, broken tables, awkward breaks, cramped space, excessive blank space, isolated headings, and student/teacher page misalignment.
 3. Correct generator and re-render until clean.
-4. Delete temporary render files before completion.
-5. Verify structurally: no "Study Guide" label, matching page order and count, source files unchanged.
+4. Delete temporary render files before completion unless retained for audit records.
+5. Verify structurally: no "Study Guide" label, matching page order and count, protected source files unchanged, reference rules present in transcription.
+6. Run `scripts/validate_chapter_01.py` after Chapter 1 regeneration.
