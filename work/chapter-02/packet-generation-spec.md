@@ -680,6 +680,48 @@ unless specifically approved.
 
 ---
 
+# Appendix A.1 — Pagination Optimization Rules
+
+**Status:** LOCKED guidance for post-QA pagination passes
+**Goal:** Reduce unnecessary blank space by allowing lessons to share pages when appropriate, without compromising usability.
+
+## Constraints (never violate)
+
+| Rule | Requirement |
+|------|-------------|
+| Font size | Do not shrink body or label fonts |
+| Writing space | Preserve apply blocks (4 lines), memory-check lines, vocab fields |
+| Classification workspace | Keep 3 blank classification lines per practice item |
+| Student reflection | Preserve apply, memory check, teacher check, drawing boxes |
+| Lesson integrity | Do not split a single practice activity across pages |
+| Parity | Student and teacher editions must render the same page count |
+
+## Allowed
+
+- Lesson headings after a clear section separator on the same logical page
+- Short note sections sharing space when combined content fits one rendered sheet
+- Memory checks following lesson content when room allows
+- Moving final practice item onto a prior under-filled practice page (same lesson)
+- Apply + checks on a dedicated lighter follow-on page
+
+## Not allowed
+
+- Stranded headings (banner with no content below)
+- Split classification examples mid-item
+- Cramped writing or classification areas
+- Section merges that overflow to an extra rendered page (net zero or negative savings)
+- Teacher/student page-count mismatch
+
+## Validation
+
+After any pagination change:
+
+1. `python3 scripts/validate_chapter_02.py` — parity, classification keys, review limits
+2. LibreOffice PDF render — confirm rendered page count, not just logical section count
+3. Visual QA on merged or redistributed pages — classification alignment, no clipping
+
+---
+
 # Appendix B — Estimated Page Budget (non-binding target)
 
 | Block | Pages |
