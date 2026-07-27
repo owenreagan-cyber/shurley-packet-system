@@ -767,23 +767,30 @@ def add_review_content(doc):
     add_section_label(doc, "Part A — Complete Sentences")
     add_body(doc, "Name the five parts of a complete sentence:")
     add_blank_lines(doc, 1)
-    add_section_label(doc, "Part B — Synonyms and Antonyms")
+    add_section_label(doc, "Part B — Vocabulary")
+    add_body(doc, "Match each word to its meaning. Write the letter on the line.")
+    add_body(doc, "____ encourage          A. a part of a whole number")
+    add_body(doc, "____ magnify             B. a town or group of people")
+    add_body(doc, "____ community           C. to cheer on")
+    add_body(doc, "____ fraction            D. to make something appear larger")
+    add_section_label(doc, "Part C — Synonyms and Antonyms")
     add_body(doc, "1. Synonyms are words that _______________________________.")
     add_body(doc, "2. Antonyms are words that _______________________________.")
     add_body(doc, "3. Circle:  hot/warm = Synonym or Antonym?     run/walk = Synonym or Antonym?")
-    add_section_label(doc, "Part C — Analogies")
+
+
+def add_review_content_page2(doc):
+    add_section_label(doc, "Part D — Analogy Relationships")
     add_body(doc, "1. List the four analogy relationship types:")
     add_blank_lines(doc, 1)
-    add_body(doc, "2. big : small :: hot : ___________   (relationship: ___________)")
-    add_body(doc, "3. leaf : tree :: paw : ___________   (relationship: ___________)")
-    add_section_label(doc, "Part D — Vocabulary")
-    add_body(doc, "Write the word and definition for one vocabulary word you studied in this chapter.")
-    add_blank_lines(doc, 2)
-    add_section_label(doc, "Part E — Capitalization and Punctuation")
-    add_body(doc, "Rewrite correctly: kevin asked bobby bill and tonya to his birthday party")
-    add_blank_lines(doc, 1)
-    add_section_label(doc, "Part F — Application")
-    add_body(doc, "Write one academic goal and one short-term action step you will take this week.")
+    add_body(doc, "2. Nice : Kind :: Mad : Angry   (relationship: ___________)")
+    add_body(doc, "3. Finger : Hand :: Tree : ___________   (relationship: ___________)")
+    add_section_label(doc, "Part E — Analogy Practice")
+    add_body(doc, "4. big : small :: hot : ___________   (relationship: ___________)")
+    add_body(doc, "5. leaf : tree :: paw : ___________   (relationship: ___________)")
+    add_section_label(doc, "Part F — Capitalization and Punctuation")
+    add_body(doc, "Rewrite correctly. Add capitals, commas, and an end mark:")
+    add_body(doc, "kevin asked bobby bill and tonya to his birthday party")
     add_blank_lines(doc, 1)
 
 
@@ -981,6 +988,12 @@ def build_review():
     add_body(doc, "Name: _________________     Date: _________________")
     add_body(doc, "Complete this review in class. Work with a partner when your teacher says to do so.", italic=True, space_after=10)
     add_review_content(doc)
+    add_page_break(doc)
+    section = doc.add_section()
+    set_margins(section, t=0.6, b=0.6, l=0.6, r=0.6)
+    add_para(doc, "Chapter 1 — In-Class Chapter Review (continued)", bold=True, size=16, align=WD_ALIGN_PARAGRAPH.CENTER, space_after=8)
+    add_body(doc, "Name: _________________", space_after=8)
+    add_review_content_page2(doc)
     add_teacher_check(doc)
     return doc
 
@@ -989,19 +1002,29 @@ def build_review_key():
     doc = Document()
     set_margins(doc.sections[0], t=0.6, b=0.6, l=0.6, r=0.6)
     add_para(doc, "Chapter 1 — In-Class Chapter Review Key", bold=True, size=18, align=WD_ALIGN_PARAGRAPH.CENTER, space_after=12)
-    sections = [
+    page1 = [
         ("Part A — Complete Sentences", "Capital letter, End mark, Complete sense, Subject, Verb"),
-        ("Part B — Synonyms and Antonyms",
+        ("Part B — Vocabulary", "encourage = C   magnify = D   community = B   fraction = A"),
+        ("Part C — Synonyms and Antonyms",
          "1. have almost the same meanings\n2. have opposite meanings\n3. hot/warm = Synonym; run/walk = Antonym"),
-        ("Part C — Analogies",
-         "1. Synonym, Antonym, Rhyming, Part-to-Whole\n2. hot : cold (Antonym)\n3. paw : dog (Part-to-Whole)"),
-        ("Part D — Vocabulary", "1. encourage  2. magnify  3. community  4. fraction"),
-        ("Part E — Capitalization and Punctuation",
-         "Kevin asked Bobby, Bill, and Tonya to his birthday party."),
-        ("Part F — Application",
-         "Answers will vary. Accept a reasonable academic goal with a matching short-term action step."),
     ]
-    for title, ans in sections:
+    for title, ans in page1:
+        add_heading(doc, title)
+        for line in ans.split("\n"):
+            add_para(doc, line, bold=True, color=ANSWER_BLUE, space_after=3)
+    add_page_break(doc)
+    section = doc.add_section()
+    set_margins(section, t=0.6, b=0.6, l=0.6, r=0.6)
+    add_para(doc, "Chapter 1 — In-Class Chapter Review Key (continued)", bold=True, size=16, align=WD_ALIGN_PARAGRAPH.CENTER, space_after=12)
+    page2 = [
+        ("Part D — Analogy Relationships",
+         "1. Synonym, Antonym, Rhyming, Part-to-Whole\n2. Synonym\n3. Part-to-Whole (Forest)"),
+        ("Part E — Analogy Practice",
+         "4. hot : cold (Antonym)\n5. paw : dog (Part-to-Whole)"),
+        ("Part F — Capitalization and Punctuation",
+         "Kevin asked Bobby, Bill, and Tonya to his birthday party."),
+    ]
+    for title, ans in page2:
         add_heading(doc, title)
         for line in ans.split("\n"):
             add_para(doc, line, bold=True, color=ANSWER_BLUE, space_after=3)
@@ -1018,8 +1041,8 @@ def main():
     outputs = [
         (STUDENT_OUT, *build_student_packet()),
         (TEACHER_OUT, *build_teacher_edition()),
-        (REVIEW_OUT, build_review(), 1),
-        (REVIEW_KEY_OUT, build_review_key(), 1),
+        (REVIEW_OUT, build_review(), 2),
+        (REVIEW_KEY_OUT, build_review_key(), 2),
     ]
     for path, document, page_count in outputs:
         path.parent.mkdir(parents=True, exist_ok=True)
