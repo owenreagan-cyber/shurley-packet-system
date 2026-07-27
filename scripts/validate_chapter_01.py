@@ -36,6 +36,9 @@ REFERENCE_PHRASES = [
 
 PROHIBITED_PHRASES = ["study guide"]
 
+TARGET_PACKET_PAGES_MIN = 16
+TARGET_PACKET_PAGES_MAX = 18
+
 
 def sha256(path: Path) -> str:
     h = hashlib.sha256()
@@ -161,14 +164,22 @@ def main() -> int:
 
     if student_pages != teacher_pages:
         errors.append(f"Page parity FAIL: student={student_pages}, teacher={teacher_pages}")
+    if not (TARGET_PACKET_PAGES_MIN <= student_pages <= TARGET_PACKET_PAGES_MAX):
+        errors.append(
+            f"Student packet page count {student_pages} outside target {TARGET_PACKET_PAGES_MIN}–{TARGET_PACKET_PAGES_MAX}"
+        )
+    if not (TARGET_PACKET_PAGES_MIN <= teacher_pages <= TARGET_PACKET_PAGES_MAX):
+        errors.append(
+            f"Teacher edition page count {teacher_pages} outside target {TARGET_PACKET_PAGES_MIN}–{TARGET_PACKET_PAGES_MAX}"
+        )
     if review_pages > 2:
         errors.append(f"In-Class Chapter Review exceeds 2 pages: {review_pages}")
     if review_key_pages > 2:
         errors.append(f"Review key exceeds 2 pages: {review_key_pages}")
 
     print("Protected reference PDF SHA-256:", pdf_hash)
-    print(f"Student packet pages: {student_pages}")
-    print(f"Teacher edition pages: {teacher_pages}")
+    print(f"Student packet pages: {student_pages} (target {TARGET_PACKET_PAGES_MIN}–{TARGET_PACKET_PAGES_MAX})")
+    print(f"Teacher edition pages: {teacher_pages} (target {TARGET_PACKET_PAGES_MIN}–{TARGET_PACKET_PAGES_MAX})")
     print(f"In-Class Chapter Review pages: {review_pages}")
     print(f"Review key pages: {review_key_pages}")
     print(f"Transcription punctuation rules: 1–13 present")
